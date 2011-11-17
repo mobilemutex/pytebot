@@ -1,0 +1,104 @@
+#!/usr/bin/python
+
+import sys
+import socket
+import string
+import time
+import os
+
+
+HOST='irc.server.com'
+PORT=6667
+NICK='userName'
+IDENT=NICK
+REALNAME='Real Name'
+OWNER='theOwner'
+OPS=['theOwner', 'usernames', 'who', 'have', 'control']
+readbuffer=''
+CHAN=['#channels','#to', '#join']
+
+
+def parsemsg(msg):
+    complete=msg[1:].split(':',1)
+    info=complete[0].split(' ')
+    msgpart=complete[1]
+    sender=info[0].split('!')
+    send=sender[0]
+    if msgpart[0]=='`' and (send in OPS):
+        cmd=msgpart[1:].split(' ')
+        if cmd[0]=='op':
+            try:
+                s.send('MODE '+info[2]+' +o '+cmd[1]+'\r\n')
+            except IndexError:
+                print "Must specify user to op!\r\n"
+                s.send('PRIVMSG '+info[2]+' :Must specify user to op!\r\n')
+        if cmd[0]=='deop':
+            try:
+                s.send('MODE '+info[2]+' -o '+cmd[1]+'\r\n')
+            except IndexError:
+                print "Must specify user to deop!\r\n"
+                s.send('PRIVMSG '+info[2]+' :Must specify user to deop!\r\n')
+        if cmd[0]=='voice':
+            try:
+                s.send('MODE '+info[2]+' +v '+cmd[1]+'\r\n')
+            except IndexError:
+                print "Must specify user to voice!\r\n"
+                s.send('PRIVMSG '+info[2]+' :Must specify user to voice~\r\n')
+        if cmd[0]=='devoice':
+            try:
+                s.send('MODE '+info[2]+' -v '+cmd[1]+'\r\n')
+            except IndexError:
+                print "Must specify user to devoice!\r\n"
+                s.send('PRIVMSG '+info[2]+' :Must specify user to devoice!\r\n')
+        if cmd[0]=='opme':
+            s.send('MODE '+info[2]+' +o '+sender[0]+'\r\n')
+        if cmd[0]=='deopme':
+            s.send('MODE '+info[2]+' -o '+sender[0]+'\r\n')
+    if msgpart[:3]=='-`-' and (sender[0]==OWNER):
+        cmd=msgpart[3:]
+        s.send(cmd+'\r\n')
+        print 'cmd='+cmd
+
+#MAIN
+
+#Create socket, send nick to server and identify
+s=socket.socket()
+s.connect((HOST, PORT))
+s.send("NICK %s\r\n" % (NICK))
+s.send("USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME))
+
+
+flag=0
+while 1:
+    readbuffer=s.recv(4096)
+    temp=readbuffer.split('\n')
+    siz=len(temp)
+    i=0
+    while i<siz-1:
+       readbuffer=temp.pop(0)
+       if readbuffer.find('PING')==-1:
+           print readbuffer
+       i+=1
+       
+       line=readbuffer.rstrip()
+       if line.find('PING')!=-1:
+           lin=line.split(':')
+           s.send("PONG %s\r\n" % lin[1])
+       if line.find('Welcome to')!=-1 and flag==0:
+           flag=1
+           for x in CHAN:
+               s.send('JOIN '+x+'\r\n')
+       if line.find('PRIVMSG')!=-1:
+            parsemsg(line)
+       if line.find('JOIN')!=-1:
+            chan=line[1:].split(':')[1]
+            me=line[1:].split(':',1)[0].split(' ')[0].split('!')[0]
+            if me in OPS:
+                where=OPS.index(me)
+                user=OPS[where]
+                s.send('MODE '+chan+' +o '+user+'\r\n')
+
+
+
+
+
