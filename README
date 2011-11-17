@@ -1,1 +1,29 @@
-Simple Python Bot
+Python IRC Bot
+
+connects with sockets and parses
+all messages to allow for the
+following commmands:
+`op <user>
+`deop <user>
+`voice <user>
+`devoice <user>
+`opme
+`deopme
+
+will join specifed channels and be
+accessible to an list of operators
+that can be specified. Will
+automatically op specified operators
+as they join.
+
+a special operator specifed as the Owner can
+issue custom messages from the bot to the
+server with the following command:
+-`-<custom command>
+
+ex.
+     -`-PRIVMSG <#chan> :<msg>
+     -`-JOIN <#chan>
+     -`-PART <#chan>
+  etc.
+
