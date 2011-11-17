@@ -13,7 +13,7 @@ NICK='thector'
 IDENT='thector'
 REALNAME='mutex'
 OWNER='mutex'
-OPS=['mutex', 'sercus', 'Kite', 'rms', 'DHowett']
+OPS=['mutex', 'sercus', 'Kite', 'DHowett']
 readbuffer=''
 CHAN=['#mutex','#reversing', '#spam']
 
